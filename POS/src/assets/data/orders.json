@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1,
+    "orderNumber": "ORD-2025-0001",
+    "shopId": 1,
+    "shopName": "Main Store - Downtown",
+    "items": [
+      {
+        "productId": 1,
+        "productName": "Gulab Jamun",
+        "quantity": 2,
+        "price": 120,
+        "total": 240
+      },
+      {
+        "productId": 5,
+        "productName": "Kaju Katli",
+        "quantity": 1,
+        "price": 450,
+        "total": 450
+      }
+    ],
+    "subtotal": 690,
+    "tax": 69,
+    "discount": 0,
+    "total": 759,
+    "status": "completed",
+    "paymentMethod": "Cash",
+    "customerName": "Rajesh Kumar",
+    "customerPhone": "98765-43210",
+    "notes": "Festival order",
+    "createdDate": "2025-10-01T10:30:00.000Z",
+    "completedDate": "2025-10-01T11:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "orderNumber": "ORD-2025-0002",
+    "shopId": 2,
+    "shopName": "Branch Store - Mall",
+    "items": [
+      {
+        "productId": 9,
+        "productName": "Motichoor Ladoo",
+        "quantity": 3,
+        "price": 240,
+        "total": 720
+      }
+    ],
+    "subtotal": 720,
+    "tax": 72,
+    "discount": 50,
+    "total": 742,
+    "status": "pending",
+    "paymentMethod": "Credit Card",
+    "customerName": "Priya Sharma",
+    "customerPhone": "98876-54321",
+    "notes": "",
+    "createdDate": "2025-10-04T14:20:00.000Z"
+  },
+  {
+    "id": 3,
+    "orderNumber": "ORD-2025-0003",
+    "shopId": 1,
+    "shopName": "Main Store - Downtown",
+    "items": [
+      {
+        "productId": 16,
+        "productName": "Jalebi",
+        "quantity": 2,
+        "price": 140,
+        "total": 280
+      },
+      {
+        "productId": 2,
+        "productName": "Rasgulla",
+        "quantity": 1,
+        "price": 140,
+        "total": 140
+      }
+    ],
+    "subtotal": 420,
+    "tax": 42,
+    "discount": 0,
+    "total": 462,
+    "status": "processing",
+    "paymentMethod": "Cash",
+    "customerName": "Amit Patel",
+    "customerPhone": "98111-22333",
+    "notes": "Birthday party order",
+    "createdDate": "2025-10-04T16:45:00.000Z"
+  }
+]

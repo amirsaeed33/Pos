@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Live POS URL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        h1 {
+            color: #f6a623;
+            font-size: 42px;
+            margin-bottom: 20px;
+        }
+        .emoji {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        .url-box {
+            background: #f8f9fa;
+            border: 3px dashed #f6a623;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+        .url-label {
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+        .url {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            word-break: break-all;
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            margin: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.5);
+        }
+        .btn-secondary {
+            background: #f6a623;
+            color: white;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(246, 166, 35, 0.5);
+        }
+        .credentials {
+            background: #fff3cd;
+            border-left: 5px solid #f6a623;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: left;
+            border-radius: 10px;
+        }
+        .credentials h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+        .credentials code {
+            background: white;
+            padding: 3px 8px;
+            border-radius: 5px;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .status {
+            display: inline-block;
+            padding: 8px 20px;
+            background: #28a745;
+            color: white;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .warning {
+            background: #dc3545;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            h1 {
+                font-size: 28px;
+            }
+            .url {
+                font-size: 16px;
+            }
+            .btn {
+                padding: 12px 25px;
+                font-size: 16px;
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="emoji">🎉</div>
+        <h1>Your POS App is LIVE!</h1>
+        <div class="status">🟢 ONLINE</div>
+        
+        <div class="url-box">
+            <div class="url-label">📍 Your Public URL</div>
+            <div class="url" id="liveUrl">https://proacting-realterably-loise.ngrok-free.dev</div>
+            <button class="btn btn-primary" onclick="openApp()">🚀 Open POS App</button>
+            <button class="btn btn-secondary" onclick="copyUrl()">📋 Copy URL</button>
+        </div>
+
+        <div class="warning">
+            ⚠️ DO NOT USE: https://abc123.ngrok.app (This is just an example!)
+        </div>
+
+        <div class="credentials">
+            <h3>🔑 Admin Login:</h3>
+            <p><strong>Email:</strong> <code>admin@cxp.com</code></p>
+            <p><strong>Password:</strong> <code>Admin123!</code></p>
+            <p><em>Access: Full dashboard, products, shops, all orders</em></p>
+        </div>
+
+        <div class="credentials">
+            <h3>🏪 Shop Login:</h3>
+            <p><strong>Email:</strong> <code>downtown@mithai.com</code></p>
+            <p><strong>Password:</strong> <code>shop123</code></p>
+            <p><em>Access: Create orders, view own orders</em></p>
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background: #e7f3ff; border-radius: 10px;">
+            <h3 style="color: #004085; margin-bottom: 10px;">📊 Monitor Traffic:</h3>
+            <button class="btn btn-secondary" onclick="openMonitor()">Open ngrok Dashboard</button>
+        </div>
+
+        <div style="margin-top: 30px; color: #666; font-size: 14px;">
+            <p>✅ Angular: Running on http://localhost:4200</p>
+            <p>✅ ngrok: Tunnel active</p>
+            <p>✅ Status: LIVE and ready to share!</p>
+        </div>
+    </div>
+
+    <script>
+        const actualUrl = 'https://proacting-realterably-loise.ngrok-free.dev';
+        
+        function openApp() {
+            window.open(actualUrl, '_blank');
+        }
+
+        function copyUrl() {
+            navigator.clipboard.writeText(actualUrl).then(() => {
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                btn.style.background = '#28a745';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+
+        function openMonitor() {
+            window.open('http://127.0.0.1:4040', '_blank');
+        }
+
+        // Auto-check if URL is accessible
+        fetch(actualUrl)
+            .then(() => {
+                console.log('✅ URL is accessible!');
+            })
+            .catch(() => {
+                console.warn('⚠️ URL might not be accessible yet');
+            });
+    </script>
+</body>
+</html>
+

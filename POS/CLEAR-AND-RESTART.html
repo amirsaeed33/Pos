@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Data and Restart</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #d4af37;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #d4af37;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #b8941f;
+        }
+        .danger {
+            background: #dc3545;
+        }
+        .danger:hover {
+            background: #c82333;
+        }
+        .success {
+            background: #28a745;
+        }
+        .info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            color: #495057;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 POS Data Reset Tool</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Warning:</strong> This will clear ALL data from localStorage and reload from JSON files!
+        </div>
+
+        <div class="info">
+            <strong>Current Status:</strong>
+            <pre id="status">Checking...</pre>
+        </div>
+
+        <button onclick="clearAndReload()" class="danger">🗑️ Clear All Data & Reload</button>
+        <button onclick="checkStatus()">🔍 Check Status</button>
+        <button onclick="openApp()" class="success">🚀 Open POS App</button>
+
+        <h2>Instructions:</h2>
+        <ol>
+            <li>Click "<strong>Clear All Data & Reload</strong>"</li>
+            <li>This will clear localStorage</li>
+            <li>Click "<strong>Open POS App</strong>"</li>
+            <li>App will load fresh data from JSON files</li>
+            <li>Check Console (F12) for logs</li>
+        </ol>
+    </div>
+
+    <script>
+        function checkStatus() {
+            const products = localStorage.getItem('mithai_products');
+            const shops = localStorage.getItem('mithai_shops');
+            const orders = localStorage.getItem('mithai_orders');
+            const categories = localStorage.getItem('mithai_categories');
+
+            let status = '';
+            
+            if (products) {
+                const count = JSON.parse(products).length;
+                status += `✅ Products: ${count} items\n`;
+            } else {
+                status += '❌ Products: Not found\n';
+            }
+
+            if (shops) {
+                const count = JSON.parse(shops).length;
+                status += `✅ Shops: ${count} items\n`;
+            } else {
+                status += '❌ Shops: Not found\n';
+            }
+
+            if (orders) {
+                const count = JSON.parse(orders).length;
+                status += `✅ Orders: ${count} items\n`;
+            } else {
+                status += '❌ Orders: Not found\n';
+            }
+
+            if (categories) {
+                const count = JSON.parse(categories).length;
+                status += `✅ Categories: ${count} items\n`;
+            } else {
+                status += '❌ Categories: Not found\n';
+            }
+
+            document.getElementById('status').textContent = status;
+        }
+
+        function clearAndReload() {
+            if (confirm('Are you sure? This will delete all data from localStorage!')) {
+                localStorage.clear();
+                alert('✅ All data cleared! Now open the POS app to load fresh data.');
+                checkStatus();
+            }
+        }
+
+        function openApp() {
+            window.open('http://localhost:4200', '_blank');
+        }
+
+        // Check status on load
+        checkStatus();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,53 @@
+[
+  {
+    "id": 1,
+    "name": "Milk Based",
+    "icon": "🥛"
+  },
+  {
+    "id": 2,
+    "name": "Dry Fruits",
+    "icon": "🌰"
+  },
+  {
+    "id": 3,
+    "name": "Fried Sweets",
+    "icon": "🍩"
+  },
+  {
+    "id": 4,
+    "name": "Bengali Sweets",
+    "icon": "🍮"
+  },
+  {
+    "id": 5,
+    "name": "Namkeen",
+    "icon": "🥨"
+  },
+  {
+    "id": 6,
+    "name": "Special Mithai",
+    "icon": "✨"
+  },
+  {
+    "id": 7,
+    "name": "Barfi",
+    "icon": "🔶"
+  },
+  {
+    "id": 8,
+    "name": "Ladoo",
+    "icon": "⚪"
+  },
+  {
+    "id": 9,
+    "name": "Peda",
+    "icon": "🟤"
+  },
+  {
+    "id": 10,
+    "name": "Gift Boxes",
+    "icon": "🎁"
+  }
+]
+

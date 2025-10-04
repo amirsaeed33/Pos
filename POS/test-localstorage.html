@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalStorage Test & Setup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #f6a623;
+        }
+        button {
+            background: #f6a623;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 10px 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #e09518;
+        }
+        .danger {
+            background: #dc3545;
+        }
+        .danger:hover {
+            background: #c82333;
+        }
+        .success {
+            background: #28a745;
+        }
+        .success:hover {
+            background: #218838;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-height: 400px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍬 Mithai POS - LocalStorage Manager</h1>
+        
+        <h2>Current Status</h2>
+        <div id="status"></div>
+        
+        <h2>Actions</h2>
+        <button onclick="checkStorage()">🔍 Check Storage</button>
+        <button onclick="populateStorage()" class="success">📦 Populate Sample Data</button>
+        <button onclick="clearStorage()" class="danger">🗑️ Clear All Data</button>
+        <button onclick="exportData()">💾 Export Backup</button>
+        
+        <h2>Storage Contents</h2>
+        <pre id="output">Click "Check Storage" to view data...</pre>
+    </div>
+
+    <script>
+        // Sample data
+        const sampleProducts = [
+            {
+                "id": 1,
+                "name": "Gulab Jamun",
+                "category": "Milk Based",
+                "price": 120,
+                "stock": 150,
+                "sku": "MILK-GJ-001",
+                "description": "Soft milk solid balls soaked in sugar syrup, 250g",
+                "image": "🟤"
+            },
+            {
+                "id": 2,
+                "name": "Rasgulla",
+                "category": "Milk Based",
+                "price": 140,
+                "stock": 120,
+                "sku": "MILK-RG-002",
+                "description": "Soft spongy balls made from chhena and soaked in syrup, 250g",
+                "image": "⚪"
+            },
+            {
+                "id": 3,
+                "name": "Kaju Katli",
+                "category": "Barfi",
+                "price": 450,
+                "stock": 150,
+                "sku": "BARF-KK-005",
+                "description": "Premium cashew barfi with silver leaf, 250g",
+                "image": "🔶"
+            },
+            {
+                "id": 4,
+                "name": "Motichoor Ladoo",
+                "category": "Ladoo",
+                "price": 240,
+                "stock": 250,
+                "sku": "LADU-ML-009",
+                "description": "Tiny gram flour balls shaped into ladoos, 250g",
+                "image": "🟠"
+            },
+            {
+                "id": 5,
+                "name": "Jalebi",
+                "category": "Fried Sweets",
+                "price": 140,
+                "stock": 200,
+                "sku": "FRIE-JL-016",
+                "description": "Crispy spiral shaped sweet soaked in sugar syrup, 250g",
+                "image": "🟠"
+            }
+        ];
+
+        const sampleShops = [
+            {
+                "id": 1,
+                "name": "Main Store - Downtown",
+                "email": "downtown@mithai.com",
+                "phone": "111-222-3333",
+                "address": "123 Main Street, Downtown",
+                "balance": 50000
+            },
+            {
+                "id": 2,
+                "name": "Branch Store - Mall",
+                "email": "mall@mithai.com",
+                "phone": "444-555-6666",
+                "address": "Mall Road, Shopping Complex",
+                "balance": 35000
+            }
+        ];
+
+        const sampleCategories = [
+            { "id": 1, "name": "Milk Based", "icon": "🥛" },
+            { "id": 2, "name": "Barfi", "icon": "🔶" },
+            { "id": 3, "name": "Ladoo", "icon": "⚪" },
+            { "id": 4, "name": "Fried Sweets", "icon": "🍩" },
+            { "id": 5, "name": "Bengali Sweets", "icon": "🍮" }
+        ];
+
+        function checkStorage() {
+            const products = localStorage.getItem('mithai_products');
+            const shops = localStorage.getItem('mithai_shops');
+            const orders = localStorage.getItem('mithai_orders');
+            const categories = localStorage.getItem('mithai_categories');
+
+            let output = '=== LOCALSTORAGE CONTENTS ===\n\n';
+            
+            output += '📦 PRODUCTS:\n';
+            if (products) {
+                const parsed = JSON.parse(products);
+                output += `✅ Found ${parsed.length} products\n`;
+                output += JSON.stringify(parsed, null, 2) + '\n\n';
+            } else {
+                output += '❌ No products found\n\n';
+            }
+
+            output += '🏪 SHOPS:\n';
+            if (shops) {
+                const parsed = JSON.parse(shops);
+                output += `✅ Found ${parsed.length} shops\n`;
+                output += JSON.stringify(parsed, null, 2) + '\n\n';
+            } else {
+                output += '❌ No shops found\n\n';
+            }
+
+            output += '📋 ORDERS:\n';
+            if (orders) {
+                const parsed = JSON.parse(orders);
+                output += `✅ Found ${parsed.length} orders\n`;
+                output += JSON.stringify(parsed, null, 2) + '\n\n';
+            } else {
+                output += '❌ No orders found\n\n';
+            }
+
+            output += '🏷️ CATEGORIES:\n';
+            if (categories) {
+                const parsed = JSON.parse(categories);
+                output += `✅ Found ${parsed.length} categories\n`;
+                output += JSON.stringify(parsed, null, 2) + '\n';
+            } else {
+                output += '❌ No categories found\n';
+            }
+
+            document.getElementById('output').textContent = output;
+            updateStatus();
+        }
+
+        function populateStorage() {
+            localStorage.setItem('mithai_products', JSON.stringify(sampleProducts));
+            localStorage.setItem('mithai_shops', JSON.stringify(sampleShops));
+            localStorage.setItem('mithai_orders', JSON.stringify([]));
+            localStorage.setItem('mithai_categories', JSON.stringify(sampleCategories));
+            
+            showStatus('✅ Sample data populated successfully!', 'success');
+            checkStorage();
+        }
+
+        function clearStorage() {
+            if (confirm('Are you sure you want to clear ALL data?')) {
+                localStorage.removeItem('mithai_products');
+                localStorage.removeItem('mithai_shops');
+                localStorage.removeItem('mithai_orders');
+                localStorage.removeItem('mithai_categories');
+                localStorage.removeItem('currentUser');
+                
+                showStatus('🗑️ All data cleared!', 'success');
+                document.getElementById('output').textContent = 'Storage cleared. Click "Check Storage" to verify.';
+            }
+        }
+
+        function exportData() {
+            const data = {
+                products: JSON.parse(localStorage.getItem('mithai_products') || '[]'),
+                shops: JSON.parse(localStorage.getItem('mithai_shops') || '[]'),
+                orders: JSON.parse(localStorage.getItem('mithai_orders') || '[]'),
+                categories: JSON.parse(localStorage.getItem('mithai_categories') || '[]')
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mithai-pos-backup.json';
+            a.click();
+            
+            showStatus('💾 Backup exported successfully!', 'success');
+        }
+
+        function updateStatus() {
+            const products = localStorage.getItem('mithai_products');
+            const shops = localStorage.getItem('mithai_shops');
+            const categories = localStorage.getItem('mithai_categories');
+
+            let statusHTML = '';
+            
+            if (products && shops && categories) {
+                const pCount = JSON.parse(products).length;
+                const sCount = JSON.parse(shops).length;
+                const cCount = JSON.parse(categories).length;
+                statusHTML = `<div class="status success">
+                    ✅ <strong>Storage Ready!</strong><br>
+                    ${pCount} products, ${sCount} shops, ${cCount} categories
+                </div>`;
+            } else {
+                statusHTML = `<div class="status error">
+                    ❌ <strong>Storage Empty!</strong><br>
+                    Click "Populate Sample Data" to add initial data.
+                </div>`;
+            }
+
+            document.getElementById('status').innerHTML = statusHTML;
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(updateStatus, 3000);
+        }
+
+        // Check status on load
+        updateStatus();
+    </script>
+</body>
+</html>
+
