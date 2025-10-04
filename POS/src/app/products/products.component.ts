@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ProductService, Product, Category } from '../services/product.service';
+import { ProductService, Product, CreateProductDto, UpdateProductDto } from '../services/product.service';
 import { AlertService } from '../services/alert.service';
 import { LoaderService } from '../services/loader.service';
 import { HeaderComponent } from '../components/header/header.component';
@@ -16,8 +16,7 @@ export class ProductsComponent implements OnInit {
   products: Product[] = [];
   filteredProducts: Product[] = [];
   paginatedProducts: Product[] = [];
-  categoryList: Category[] = [];
-  categories: string[] = [];
+  categories: string[] = ['All']; // Initialize with 'All' by default
   searchQuery = '';
   selectedCategory = 'All';
   
@@ -36,7 +35,7 @@ export class ProductsComponent implements OnInit {
   selectedProduct: Product | null = null;
   
   // Form data
-  productForm: Omit<Product, 'id'> = {
+  productForm: CreateProductDto = {
     name: '',
     category: '',
     price: 0,
@@ -59,20 +58,47 @@ export class ProductsComponent implements OnInit {
   }
 
   loadProducts() {
-    console.log('📥 ProductsComponent: Subscribing to products...');
-    this.productService.getAll().subscribe(products => {
-      console.log('📦 ProductsComponent: Received products:', products.length, 'products');
-      console.log('Products data:', products);
-      this.products = products;
-      this.applyFilters();
-      console.log('✅ Filtered products:', this.filteredProducts.length);
-      console.log('📄 Paginated products:', this.paginatedProducts.length);
+    console.log('📥 ProductsComponent: Loading products from API...');
+    this.loaderService.show('Loading products...');
+    
+    this.productService.getAllProducts().subscribe({
+      next: (products) => {
+        console.log('📦 ProductsComponent: Received products:', products.length, 'products');
+        this.products = products;
+        this.applyFilters();
+        this.loaderService.hide();
+        console.log('✅ Filtered products:', this.filteredProducts.length);
+      },
+      error: (error) => {
+        console.error('Error loading products:', error);
+        this.loaderService.hide();
+        this.alertService.error(
+          'Error Loading Products',
+          'Unable to load products from the server. Please try again.'
+        );
+      }
     });
   }
 
   loadCategories() {
-    this.categoryList = this.productService.getCategoryList();
-    this.categories = this.productService.getCategories();
+    console.log('📂 Loading categories from API...');
+    this.productService.getCategories().subscribe({
+      next: (categories) => {
+        console.log('📂 Categories loaded from API:', categories);
+        console.log('📂 Number of categories:', categories.length);
+        this.categories = ['All', ...categories];
+        console.log('📂 Final categories array:', this.categories);
+      },
+      error: (error) => {
+        console.error('❌ Error loading categories:', error);
+        console.error('Error details:', error.message);
+        this.categories = ['All'];
+        this.alertService.error(
+          'Error Loading Categories',
+          'Using default category list. Please check if the API is running.'
+        );
+      }
+    });
   }
 
   applyFilters() {
@@ -190,6 +216,31 @@ export class ProductsComponent implements OnInit {
     };
   }
 
+  // Category filter from API
+  onCategoryFilter(category: string) {
+    if (category === 'All') {
+      this.loadProducts();
+    } else {
+      this.loaderService.show(`Loading ${category} products...`);
+      this.productService.getProductsByCategory(category).subscribe({
+        next: (products) => {
+          console.log(`📦 Products in ${category}:`, products.length);
+          this.products = products;
+          this.applyFilters();
+          this.loaderService.hide();
+        },
+        error: (error) => {
+          console.error('Error loading products by category:', error);
+          this.loaderService.hide();
+          this.alertService.error(
+            'Error',
+            'Unable to filter products by category.'
+          );
+        }
+      });
+    }
+  }
+
   onSubmit() {
     if (this.modalMode === 'create') {
       this.createProduct();
@@ -199,56 +250,104 @@ export class ProductsComponent implements OnInit {
   }
 
   createProduct() {
+    // Validate form
+    if (!this.productForm.name || !this.productForm.category || !this.productForm.sku) {
+      this.alertService.error(
+        'Validation Error',
+        'Please fill in all required fields (Name, Category, SKU)'
+      );
+      return;
+    }
+
     this.loaderService.show('Creating product...');
     
-    setTimeout(() => {
-      const newProduct = this.productService.create(this.productForm);
-      this.loaderService.hide();
-      this.alertService.success(
-        'Product Created!',
-        `${newProduct.name} has been added successfully.`
-      );
-      this.closeModal();
-      this.loadCategories();
-    }, 1000);
+    this.productService.createProduct(this.productForm).subscribe({
+      next: (newProduct) => {
+        this.loaderService.hide();
+        this.alertService.success(
+          'Product Created!',
+          `${newProduct.name} has been added successfully.`
+        );
+        this.closeModal();
+        this.loadProducts();
+        this.loadCategories();
+      },
+      error: (error) => {
+        this.loaderService.hide();
+        this.alertService.error(
+          'Error Creating Product',
+          error.message || 'Unable to create product. Please try again.'
+        );
+      }
+    });
   }
 
   updateProduct() {
     if (!this.selectedProduct) return;
     
+    // Validate form
+    if (!this.productForm.name || !this.productForm.category) {
+      this.alertService.error(
+        'Validation Error',
+        'Please fill in all required fields'
+      );
+      return;
+    }
+
     this.loaderService.show('Updating product...');
     
-    setTimeout(() => {
-      const updated = this.productService.update(this.selectedProduct!.id, this.productForm);
-      this.loaderService.hide();
-      
-      if (updated) {
+    const updateDto: UpdateProductDto = {
+      name: this.productForm.name,
+      category: this.productForm.category,
+      price: this.productForm.price,
+      stock: this.productForm.stock,
+      description: this.productForm.description,
+      image: this.productForm.image
+    };
+    
+    this.productService.updateProduct(this.selectedProduct.id, updateDto).subscribe({
+      next: (updated) => {
+        this.loaderService.hide();
         this.alertService.success(
           'Product Updated!',
           `${updated.name} has been updated successfully.`
         );
         this.closeModal();
+        this.loadProducts();
         this.loadCategories();
+      },
+      error: (error) => {
+        this.loaderService.hide();
+        this.alertService.error(
+          'Error Updating Product',
+          error.message || 'Unable to update product. Please try again.'
+        );
       }
-    }, 1000);
+    });
   }
 
   deleteProduct(product: Product) {
     if (confirm(`Are you sure you want to delete "${product.name}"?`)) {
       this.loaderService.show('Deleting product...');
       
-      setTimeout(() => {
-        const deleted = this.productService.delete(product.id);
-        this.loaderService.hide();
-        
-        if (deleted) {
+      this.productService.deleteProduct(product.id).subscribe({
+        next: () => {
+          this.loaderService.hide();
           this.alertService.success(
             'Product Deleted!',
             `${product.name} has been removed successfully.`
           );
+          this.loadProducts();
           this.loadCategories();
+        },
+        error: (error) => {
+          this.loaderService.hide();
+          this.alertService.error(
+            'Error Deleting Product',
+            error.message || 'Unable to delete product. Please try again.'
+          );
         }
-      }, 800);
+      });
     }
   }
 

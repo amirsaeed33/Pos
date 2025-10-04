@@ -213,9 +213,37 @@
           <textarea class="form-control" id="shopAddress" [(ngModel)]="shopForm.address" name="address" rows="2"></textarea>
         </div>
         
-        <div class="mb-3">
-          <label for="shopBalance" class="form-label">Balance</label>
-          <input type="number" class="form-control" id="shopBalance" [(ngModel)]="shopForm.balance" name="balance" step="0.01">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="shopContactPerson" class="form-label">Contact Person</label>
+            <input type="text" class="form-control" id="shopContactPerson" [(ngModel)]="shopForm.contactPerson" name="contactPerson">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="shopCity" class="form-label">City</label>
+            <input type="text" class="form-control" id="shopCity" [(ngModel)]="shopForm.city" name="city">
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="shopState" class="form-label">State</label>
+            <input type="text" class="form-control" id="shopState" [(ngModel)]="shopForm.state" name="state">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="shopZipCode" class="form-label">Zip Code</label>
+            <input type="text" class="form-control" id="shopZipCode" [(ngModel)]="shopForm.zipCode" name="zipCode">
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="shopBalance" class="form-label">Balance</label>
+            <input type="number" class="form-control" id="shopBalance" [(ngModel)]="shopForm.balance" name="balance" step="0.01">
+          </div>
+          <div class="col-md-6 mb-3" *ngIf="!isEditMode">
+            <label for="shopPassword" class="form-label">Password *</label>
+            <input type="password" class="form-control" id="shopPassword" [(ngModel)]="shopForm.password" name="password" required>
+          </div>
         </div>
       </form>
     </div>
@@ -251,9 +279,29 @@
         <span class="detail-label">Address:</span>
         <span class="detail-value">{{ selectedShop.address }}</span>
       </div>
+      <div class="detail-row" *ngIf="selectedShop.contactPerson">
+        <span class="detail-label">Contact Person:</span>
+        <span class="detail-value">{{ selectedShop.contactPerson }}</span>
+      </div>
+      <div class="detail-row" *ngIf="selectedShop.city">
+        <span class="detail-label">City:</span>
+        <span class="detail-value">{{ selectedShop.city }}</span>
+      </div>
+      <div class="detail-row" *ngIf="selectedShop.state">
+        <span class="detail-label">State:</span>
+        <span class="detail-value">{{ selectedShop.state }}</span>
+      </div>
+      <div class="detail-row" *ngIf="selectedShop.zipCode">
+        <span class="detail-label">Zip Code:</span>
+        <span class="detail-value">{{ selectedShop.zipCode }}</span>
+      </div>
       <div class="detail-row">
         <span class="detail-label">Balance:</span>
         <span class="detail-value balance-large">{{ formatCurrency(selectedShop.balance) }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Status:</span>
+        <span class="detail-value">{{ selectedShop.isActive ? '✅ Active' : '❌ Inactive' }}</span>
       </div>
       <div class="detail-row">
         <span class="detail-label">Created Date:</span>

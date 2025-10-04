@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { DataService } from './data.service';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError, BehaviorSubject } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 export interface Product {
   id: number;
@@ -8,153 +10,197 @@ export interface Product {
   category: string;
   price: number;
   stock: number;
-  description: string;
   sku: string;
-  image?: string;
+  description: string;
+  image: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt?: Date;
 }
 
-export interface Category {
-  id: number;
+export interface CreateProductDto {
   name: string;
-  icon: string;
+  category: string;
+  price: number;
+  stock: number;
+  sku: string;
+  description: string;
+  image: string;
+}
+
+export interface UpdateProductDto {
+  name?: string;
+  category?: string;
+  price?: number;
+  stock?: number;
+  description?: string;
+  image?: string;
+  isActive?: boolean;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
-  private categories: Category[] = [];
-  private products: Product[] = [];
+  private apiUrl = `${environment.apiUrl}/products`;
+  private productsSubject = new BehaviorSubject<Product[]>([]);
+  public products$ = this.productsSubject.asObservable();
 
-  private productsSubject: BehaviorSubject<Product[]>;
-  public products$: Observable<Product[]>;
+  constructor(private http: HttpClient) {}
 
-  constructor(private dataService: DataService) {
-    // Initialize BehaviorSubject first
-    this.productsSubject = new BehaviorSubject<Product[]>([]);
-    this.products$ = this.productsSubject.asObservable();
-    
-    // Load data from localStorage/JSON
-    this.loadData();
-  }
-
-  private loadData(): void {
-    console.log('🔍 ProductService: Waiting for DataService...');
-    
-    // Wait for DataService to finish loading
-    this.dataService.dataReady$.subscribe(ready => {
-      if (ready) {
-        console.log('✅ DataService is ready, loading products now...');
-        this.products = this.dataService.getProducts();
-        this.categories = this.dataService.getCategories();
-        
-        console.log('📊 Products loaded:', this.products.length, 'products');
-        console.log('🏷️ Categories loaded:', this.categories.length, 'categories');
-
-        if (this.products.length > 0) {
-          console.log('✅ Products found, emitting to subscribers');
-          this.productsSubject.next([...this.products]);
-        } else {
-          console.error('❌ No products found even after DataService ready!');
-        }
-      }
-    });
-  }
-
-  private saveData(): void {
-    this.dataService.saveProducts(this.products);
-  }
-
-  // Get all products
-  getAll(): Observable<Product[]> {
-    return this.products$;
-  }
-
-  // Get product by ID
-  getById(id: number): Product | undefined {
-    return this.products.find(p => p.id === id);
-  }
-
-  // Create new product
-  create(product: Omit<Product, 'id'>): Product {
-    const newProduct: Product = {
-      ...product,
-      id: this.generateId()
-    };
-    this.products.push(newProduct);
-    this.productsSubject.next([...this.products]);
-    this.saveData();
-    return newProduct;
-  }
-
-  // Update product
-  update(id: number, updates: Partial<Product>): Product | null {
-    const index = this.products.findIndex(p => p.id === id);
-    if (index !== -1) {
-      this.products[index] = { ...this.products[index], ...updates };
-      this.productsSubject.next([...this.products]);
-      this.saveData();
-      return this.products[index];
-    }
-    return null;
-  }
-
-  // Delete product
-  delete(id: number): boolean {
-    const index = this.products.findIndex(p => p.id === id);
-    if (index !== -1) {
-      this.products.splice(index, 1);
-      this.productsSubject.next([...this.products]);
-      this.saveData();
-      return true;
-    }
-    return false;
-  }
-
-  // Search products
-  search(query: string): Product[] {
-    const lowerQuery = query.toLowerCase();
-    return this.products.filter(p => 
-      p.name.toLowerCase().includes(lowerQuery) ||
-      p.category.toLowerCase().includes(lowerQuery) ||
-      p.sku.toLowerCase().includes(lowerQuery)
+  /**
+   * Get all active products
+   */
+  getAllProducts(): Observable<Product[]> {
+    return this.http.get<Product[]>(this.apiUrl).pipe(
+      tap(products => {
+        console.log('Products loaded from API:', products.length);
+        this.productsSubject.next(products);
+      }),
+      catchError(this.handleError)
     );
   }
 
-  // Filter by category
+  /**
+   * Get products by category
+   */
+  getProductsByCategory(category: string): Observable<Product[]> {
+    return this.http.get<Product[]>(`${this.apiUrl}/category/${encodeURIComponent(category)}`).pipe(
+      tap(products => console.log(`Products in category ${category}:`, products.length)),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Get all unique categories
+   */
+  getCategories(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}/categories`).pipe(
+      tap(categories => console.log('Categories loaded:', categories)),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Get product by ID
+   */
+  getProductById(id: number): Observable<Product> {
+    return this.http.get<Product>(`${this.apiUrl}/${id}`).pipe(
+      tap(product => console.log('Product loaded:', product.name)),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Get product by SKU
+   */
+  getProductBySku(sku: string): Observable<Product> {
+    return this.http.get<Product>(`${this.apiUrl}/sku/${encodeURIComponent(sku)}`).pipe(
+      tap(product => console.log('Product loaded by SKU:', product.name)),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Create a new product
+   */
+  createProduct(product: CreateProductDto): Observable<Product> {
+    return this.http.post<Product>(this.apiUrl, product).pipe(
+      tap(newProduct => {
+        console.log('Product created:', newProduct.name);
+        // Refresh products list
+        this.refreshProducts();
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Update an existing product
+   */
+  updateProduct(id: number, product: UpdateProductDto): Observable<Product> {
+    return this.http.put<Product>(`${this.apiUrl}/${id}`, product).pipe(
+      tap(updatedProduct => {
+        console.log('Product updated:', updatedProduct.name);
+        // Refresh products list
+        this.refreshProducts();
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Delete a product (soft delete)
+   */
+  deleteProduct(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`).pipe(
+      tap(() => {
+        console.log('Product deleted:', id);
+        // Refresh products list
+        this.refreshProducts();
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Search products by name
+   */
+  searchProducts(searchTerm: string): Product[] {
+    const products = this.productsSubject.value;
+    if (!searchTerm) {
+      return products;
+    }
+    
+    const term = searchTerm.toLowerCase();
+    return products.filter(product => 
+      product.name.toLowerCase().includes(term) ||
+      product.category.toLowerCase().includes(term) ||
+      product.description.toLowerCase().includes(term) ||
+      product.sku.toLowerCase().includes(term)
+    );
+  }
+
+  /**
+   * Filter products by category
+   */
   filterByCategory(category: string): Product[] {
-    return this.products.filter(p => p.category === category);
+    const products = this.productsSubject.value;
+    if (!category || category === 'All') {
+      return products;
+    }
+    return products.filter(product => product.category === category);
   }
 
-  // Get all categories
-  getCategories(): string[] {
-    return [...new Set(this.products.map(p => p.category))];
+  /**
+   * Get cached products
+   */
+  getCachedProducts(): Product[] {
+    return this.productsSubject.value;
   }
 
-  // Get category list with icons
-  getCategoryList(): Category[] {
-    return this.categories;
+  /**
+   * Refresh products list
+   */
+  private refreshProducts(): void {
+    this.getAllProducts().subscribe();
   }
 
-  // Get category by name
-  getCategoryByName(name: string): Category | undefined {
-    return this.categories.find(c => c.name === name);
-  }
-
-  // Generate new ID
-  private generateId(): number {
-    return this.products.length > 0 
-      ? Math.max(...this.products.map(p => p.id)) + 1 
-      : 1;
-  }
-
-  // Get product count
-  getCount(): number {
-    return this.products.length;
-  }
-
-  // Get total stock
-  getTotalStock(): number {
-    return this.products.reduce((sum, p) => sum + p.stock, 0);
+  /**
+   * Error handler
+   */
+  private handleError(error: HttpErrorResponse) {
+    let errorMessage = 'An error occurred';
+    
+    if (error.error instanceof ErrorEvent) {
+      // Client-side error
+      errorMessage = `Error: ${error.error.message}`;
+    } else {
+      // Server-side error
+      errorMessage = error.error?.message || `Server returned code ${error.status}: ${error.message}`;
+    }
+    
+    console.error('ProductService Error:', errorMessage);
+    return throwError(() => new Error(errorMessage));
   }
 }

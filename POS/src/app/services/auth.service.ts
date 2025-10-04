@@ -1,11 +1,32 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { Shop } from './shop.service';
+import { environment } from '../../environments/environment';
 
 export interface ShopUser {
   shop: Shop;
   loginTime: Date;
   isLoggedIn: boolean;
+  token?: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  success: boolean;
+  message: string;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+  };
+  token?: string;
 }
 
 @Injectable({
@@ -14,10 +35,65 @@ export interface ShopUser {
 export class AuthService {
   private currentShopSubject = new BehaviorSubject<ShopUser | null>(null);
   public currentShop$ = this.currentShopSubject.asObservable();
+  private apiUrl = `${environment.apiUrl}/auth`;
 
-  constructor() {
+  constructor(private http: HttpClient) {
     // Check if there's a saved session
     this.loadSession();
+  }
+
+  // API-based login
+  login(email: string, password: string): Observable<LoginResponse> {
+    const request: LoginRequest = { email, password };
+    
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, request).pipe(
+      map((response) => {
+        console.log('AuthService - API Response:', response);
+        
+        if (response.success && response.user && response.token) {
+          // Create ShopUser from API response
+          const shopUser: ShopUser = {
+            shop: {
+              id: response.user.id,
+              name: response.user.name,
+              email: response.user.email,
+              phone: '',
+              address: '',
+              balance: 0,
+              role: response.user.role,  // Store the role!
+              createdDate: new Date(),
+              lastUpdated: new Date()
+            },
+            loginTime: new Date(),
+            isLoggedIn: true,
+            token: response.token
+          };
+          
+          console.log('AuthService - Saving ShopUser with role:', shopUser.shop.role);
+          
+          // Save to state and localStorage
+          this.currentShopSubject.next(shopUser);
+          this.saveSession(shopUser);
+        }
+        return response;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  private handleError(error: HttpErrorResponse) {
+    let errorMessage = 'An error occurred during login';
+    
+    if (error.error instanceof ErrorEvent) {
+      // Client-side error
+      errorMessage = `Error: ${error.error.message}`;
+    } else {
+      // Server-side error
+      errorMessage = error.error?.message || `Server returned code ${error.status}`;
+    }
+    
+    console.error('Login error:', errorMessage);
+    return throwError(() => new Error(errorMessage));
   }
 
   // Login with shop credentials
@@ -84,18 +160,31 @@ export class AuthService {
   // Check if user is admin
   isAdmin(): boolean {
     const current = this.currentShopSubject.value;
-    return current?.shop?.id === 0;
+    // Check by role first, fallback to ID check
+    return current?.shop?.role?.toLowerCase() === 'admin' || current?.shop?.id === 0;
   }
 
   // Check if user is shop
   isShop(): boolean {
     const current = this.currentShopSubject.value;
-    return current?.shop?.id !== 0 && current?.shop?.id !== undefined;
+    // Check by role first, fallback to ID check
+    return current?.shop?.role?.toLowerCase() === 'shop' || 
+           (current?.shop?.id !== 0 && current?.shop?.id !== undefined);
   }
 
   // Check if logged in
   isLoggedIn(): boolean {
     return this.currentShopSubject.value?.isLoggedIn || false;
+  }
+
+  // Get authentication token
+  getToken(): string | null {
+    return this.currentShopSubject.value?.token || null;
+  }
+
+  // Get current user role
+  getUserRole(): string | null {
+    return this.currentShopSubject.value?.shop?.role || null;
   }
 
   // Save session to localStorage

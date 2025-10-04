@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Shop, ShopService } from '../services/shop.service';
 import { HeaderComponent } from '../components/header/header.component';
 import { AlertService } from '../services/alert.service';
+import { LoaderService } from '../services/loader.service';
 
 @Component({
   selector: 'app-shop-settings',
@@ -27,7 +28,12 @@ export class ShopSettingsComponent implements OnInit {
     email: '',
     phone: '',
     address: '',
-    balance: 0
+    contactPerson: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    balance: 0,
+    password: ''
   };
   
   // Search and filter
@@ -44,17 +50,34 @@ export class ShopSettingsComponent implements OnInit {
 
   constructor(
     private shopService: ShopService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private loaderService: LoaderService
   ) {}
 
   ngOnInit() {
+    console.log('🏪 ShopSettingsComponent: Initializing...');
     this.loadShops();
   }
 
   loadShops() {
-    this.shopService.getShops().subscribe(shops => {
-      this.shops = shops;
-      this.applyFilters();
+    console.log('📥 ShopSettingsComponent: Loading shops from API...');
+    this.loaderService.show('Loading shops...');
+    
+    this.shopService.getShops().subscribe({
+      next: (shops) => {
+        console.log('📦 ShopSettingsComponent: Received shops:', shops.length);
+        this.shops = shops;
+        this.applyFilters();
+        this.loaderService.hide();
+      },
+      error: (error) => {
+        console.error('❌ Error loading shops:', error);
+        this.loaderService.hide();
+        this.alertService.error(
+          'Error Loading Shops',
+          'Unable to load shops from the server. Please try again.'
+        );
+      }
     });
   }
 
@@ -130,7 +153,12 @@ export class ShopSettingsComponent implements OnInit {
       email: shop.email,
       phone: shop.phone,
       address: shop.address,
-      balance: shop.balance
+      contactPerson: shop.contactPerson || '',
+      city: shop.city || '',
+      state: shop.state || '',
+      zipCode: shop.zipCode || '',
+      balance: shop.balance,
+      password: '' // Not needed for edit
     };
     this.showModal = true;
   }
@@ -152,7 +180,12 @@ export class ShopSettingsComponent implements OnInit {
       email: '',
       phone: '',
       address: '',
-      balance: 0
+      contactPerson: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      balance: 0,
+      password: ''
     };
     this.selectedShop = null;
   }
@@ -164,23 +197,65 @@ export class ShopSettingsComponent implements OnInit {
       return;
     }
 
-    if (this.isEditMode && this.selectedShop) {
-      // Update existing shop
-      this.shopService.updateShop(this.selectedShop.id, this.shopForm);
-      this.alertService.success('Shop Updated', `${this.shopForm.name} has been updated successfully.`);
-    } else {
-      // Create new shop
-      this.shopService.addShop(this.shopForm);
-      this.alertService.success('Shop Created', `${this.shopForm.name} has been created successfully.`);
+    // For new shops, password is required
+    if (!this.isEditMode && !this.shopForm.password) {
+      this.alertService.error('Validation Error', 'Password is required for new shops.');
+      return;
     }
 
-    this.closeModal();
+    this.loaderService.show(this.isEditMode ? 'Updating shop...' : 'Creating shop...');
+
+    if (this.isEditMode && this.selectedShop) {
+      // Update existing shop
+      this.shopService.updateShop(this.selectedShop.id, {
+        name: this.shopForm.name,
+        phone: this.shopForm.phone,
+        address: this.shopForm.address,
+        contactPerson: this.shopForm.contactPerson,
+        city: this.shopForm.city,
+        state: this.shopForm.state,
+        zipCode: this.shopForm.zipCode,
+        balance: this.shopForm.balance
+      }).subscribe({
+        next: () => {
+          this.loaderService.hide();
+          this.alertService.success('Shop Updated', `${this.shopForm.name} has been updated successfully.`);
+          this.closeModal();
+        },
+        error: (error) => {
+          this.loaderService.hide();
+          this.alertService.error('Error', `Failed to update shop: ${error.message}`);
+        }
+      });
+    } else {
+      // Create new shop
+      this.shopService.addShop(this.shopForm).subscribe({
+        next: () => {
+          this.loaderService.hide();
+          this.alertService.success('Shop Created', `${this.shopForm.name} has been created successfully.`);
+          this.closeModal();
+        },
+        error: (error) => {
+          this.loaderService.hide();
+          this.alertService.error('Error', `Failed to create shop: ${error.message}`);
+        }
+      });
+    }
   }
 
   deleteShop(shop: Shop) {
     if (confirm(`Are you sure you want to delete ${shop.name}?`)) {
-      this.shopService.deleteShop(shop.id);
-      this.alertService.info('Shop Deleted', `${shop.name} has been deleted.`);
+      this.loaderService.show('Deleting shop...');
+      this.shopService.deleteShop(shop.id).subscribe({
+        next: () => {
+          this.loaderService.hide();
+          this.alertService.info('Shop Deleted', `${shop.name} has been deleted.`);
+        },
+        error: (error) => {
+          this.loaderService.hide();
+          this.alertService.error('Error', `Failed to delete shop: ${error.message}`);
+        }
+      });
     }
   }
 
