@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://localhost:7173/api'
+  apiUrl: 'https://proacting-realterably-loise.ngrok-free.dev/api'
 };
 
 
