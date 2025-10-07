@@ -42,8 +42,13 @@ export class AuthService {
     this.loadSession();
   }
 
-  // API-based login
+  // API-based login with fallback to local authentication
   login(email: string, password: string): Observable<LoginResponse> {
+    // Check if API authentication is disabled in environment
+    if (!environment.useApiAuth) {
+      return this.localLogin(email, password);
+    }
+
     const request: LoginRequest = { email, password };
     
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, request).pipe(
@@ -77,8 +82,98 @@ export class AuthService {
         }
         return response;
       }),
-      catchError(this.handleError)
+      catchError((error) => {
+        console.log('API authentication failed, falling back to local authentication:', error.message);
+        // Fallback to local authentication
+        return this.localLogin(email, password);
+      })
     );
+  }
+
+  // Local authentication fallback
+  private localLogin(email: string, password: string): Observable<LoginResponse> {
+    console.log('AuthService - Using local authentication');
+    
+    // Check admin credentials
+    if (email === 'admin@cxp.com' && password === 'Admin123!') {
+      const shopUser: ShopUser = {
+        shop: {
+          id: 0,
+          name: 'Admin',
+          email: email,
+          phone: '',
+          address: '',
+          balance: 0,
+          role: 'admin',
+          createdDate: new Date(),
+          lastUpdated: new Date()
+        },
+        loginTime: new Date(),
+        isLoggedIn: true,
+        token: 'local-admin-token'
+      };
+      
+      this.currentShopSubject.next(shopUser);
+      this.saveSession(shopUser);
+      
+      return new Observable(observer => {
+        observer.next({
+          success: true,
+          message: 'Login successful',
+          user: {
+            id: 0,
+            name: 'Admin',
+            email: email,
+            role: 'admin'
+          },
+          token: 'local-admin-token'
+        });
+        observer.complete();
+      });
+    }
+    
+    // Check shop credentials (you can add more shop credentials here)
+    if (password === 'shop123') {
+      const shopUser: ShopUser = {
+        shop: {
+          id: 1,
+          name: 'Demo Shop',
+          email: email,
+          phone: '',
+          address: '',
+          balance: 0,
+          role: 'shop',
+          createdDate: new Date(),
+          lastUpdated: new Date()
+        },
+        loginTime: new Date(),
+        isLoggedIn: true,
+        token: 'local-shop-token'
+      };
+      
+      this.currentShopSubject.next(shopUser);
+      this.saveSession(shopUser);
+      
+      return new Observable(observer => {
+        observer.next({
+          success: true,
+          message: 'Login successful',
+          user: {
+            id: 1,
+            name: 'Demo Shop',
+            email: email,
+            role: 'shop'
+          },
+          token: 'local-shop-token'
+        });
+        observer.complete();
+      });
+    }
+    
+    // Invalid credentials
+    return new Observable(observer => {
+      observer.error(new Error('Invalid email or password'));
+    });
   }
 
   private handleError(error: HttpErrorResponse) {

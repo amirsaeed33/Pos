@@ -75,10 +75,19 @@ export class LoginComponent {
       },
       error: (error) => {
         this.loaderService.hide();
-        this.alertService.error(
-          'Login Error', 
-          error.message || 'Unable to connect to the server. Please try again.'
-        );
+        
+        let errorMessage = 'Unable to connect to the server. Please try again.';
+        
+        // Provide more specific error messages
+        if (error.message.includes('code 0')) {
+          errorMessage = 'Network connection failed. Please check your internet connection and try again.';
+        } else if (error.message.includes('Invalid email or password')) {
+          errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        this.alertService.error('Login Error', errorMessage);
         console.error('Login error:', error);
       }
     });
