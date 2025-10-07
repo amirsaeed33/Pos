@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, map, tap } from 'rxjs';
-import { ShopApiService, ShopDto, CreateShopDto, UpdateShopDto } from './shop-api.service';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { DataService } from './data.service';
 
 export interface Shop {
   id: number;
@@ -29,61 +29,59 @@ export class ShopService {
   private shopsSubject: BehaviorSubject<Shop[]>;
   shops$: Observable<Shop[]>;
 
-  constructor(private shopApiService: ShopApiService) {
+  constructor(private dataService: DataService) {
     this.shopsSubject = new BehaviorSubject<Shop[]>([]);
     this.shops$ = this.shopsSubject.asObservable();
     this.loadData();
   }
 
   private loadData(): void {
-    console.log('🏪 ShopService: Loading shops from API...');
-    this.shopApiService.getAllShops().subscribe({
-      next: (shopsDto) => {
-        this.shops = shopsDto.map(this.mapDtoToShop);
-        this.shopsSubject.next([...this.shops]);
-        console.log('✅ ShopService: Loaded', this.shops.length, 'shops');
-      },
-      error: (error) => {
-        console.error('❌ ShopService: Error loading shops:', error);
-        this.shops = [];
-        this.shopsSubject.next([]);
-      }
-    });
+    console.log('🏪 ShopService: Loading shops from localStorage...');
+    this.shops = this.dataService.getShops().map(this.mapJsonToShop);
+    this.shopsSubject.next([...this.shops]);
+    console.log('✅ ShopService: Loaded', this.shops.length, 'shops');
   }
 
-  private mapDtoToShop(dto: ShopDto): Shop {
+  private mapJsonToShop(json: any): Shop {
     return {
-      id: dto.id,
-      name: dto.name,
-      email: dto.email,
-      phone: dto.phone,
-      address: dto.address,
-      balance: dto.balance,
-      contactPerson: dto.contactPerson,
-      city: dto.city,
-      state: dto.state,
-      zipCode: dto.zipCode,
-      role: 'Shop',
-      isActive: dto.isActive,
-      createdDate: new Date(dto.createdAt),
-      lastUpdated: dto.updatedAt ? new Date(dto.updatedAt) : undefined,
-      userId: dto.userId,
-      userEmail: dto.userEmail
+      id: json.id,
+      name: json.name,
+      email: json.email,
+      phone: json.phone,
+      address: json.address,
+      balance: json.balance || 0,
+      contactPerson: json.contactPerson || '',
+      city: json.city || '',
+      state: json.state || '',
+      zipCode: json.zipCode || '',
+      role: json.role || 'Shop',
+      isActive: json.isActive !== undefined ? json.isActive : true,
+      createdDate: json.createdDate ? new Date(json.createdDate) : new Date(),
+      lastUpdated: json.lastUpdated ? new Date(json.lastUpdated) : new Date(),
+      userId: json.userId,
+      userEmail: json.userEmail
     };
   }
 
-  private mapShopToUpdateDto(shop: Partial<Shop>): UpdateShopDto {
-    const dto: UpdateShopDto = {};
-    if (shop.name !== undefined) dto.name = shop.name;
-    if (shop.phone !== undefined) dto.phone = shop.phone;
-    if (shop.address !== undefined) dto.address = shop.address;
-    if (shop.contactPerson !== undefined) dto.contactPerson = shop.contactPerson;
-    if (shop.city !== undefined) dto.city = shop.city;
-    if (shop.state !== undefined) dto.state = shop.state;
-    if (shop.zipCode !== undefined) dto.zipCode = shop.zipCode;
-    if (shop.balance !== undefined) dto.balance = shop.balance;
-    if (shop.isActive !== undefined) dto.isActive = shop.isActive;
-    return dto;
+  private mapShopToJson(shop: Shop): any {
+    return {
+      id: shop.id,
+      name: shop.name,
+      email: shop.email,
+      phone: shop.phone,
+      address: shop.address,
+      balance: shop.balance,
+      contactPerson: shop.contactPerson || '',
+      city: shop.city || '',
+      state: shop.state || '',
+      zipCode: shop.zipCode || '',
+      role: shop.role || 'Shop',
+      isActive: shop.isActive !== undefined ? shop.isActive : true,
+      createdDate: shop.createdDate || new Date(),
+      lastUpdated: shop.lastUpdated || new Date(),
+      userId: shop.userId,
+      userEmail: shop.userEmail
+    };
   }
 
   // Get all shops
@@ -91,76 +89,110 @@ export class ShopService {
     return this.shops$;
   }
 
-  // Refresh shops from API
+  // Refresh shops from localStorage
   refreshShops(): void {
     this.loadData();
   }
 
   // Get shop by ID
   getShopById(id: number): Observable<Shop> {
-    return this.shopApiService.getShopById(id).pipe(
-      map(this.mapDtoToShop)
-    );
+    const shop = this.shops.find(s => s.id === id);
+    return shop ? of(shop) : of(null as any);
   }
 
   // Get shop by email
   getShopByEmail(email: string): Observable<Shop> {
-    return this.shopApiService.getShopByEmail(email).pipe(
-      map(this.mapDtoToShop)
-    );
+    const shop = this.shops.find(s => s.email === email);
+    return shop ? of(shop) : of(null as any);
   }
 
   // Get shop by user ID
   getShopByUserId(userId: number): Observable<Shop> {
-    return this.shopApiService.getShopByUserId(userId).pipe(
-      map(this.mapDtoToShop)
-    );
+    const shop = this.shops.find(s => s.userId === userId);
+    return shop ? of(shop) : of(null as any);
   }
 
   // Add new shop
   addShop(shop: { name: string; email: string; phone: string; address: string; balance: number; contactPerson?: string; city?: string; state?: string; zipCode?: string; password: string }): Observable<Shop> {
-    const createDto: CreateShopDto = {
+    // Generate new ID
+    const maxId = this.shops.length > 0 ? Math.max(...this.shops.map(s => s.id)) : 0;
+    const newShop: Shop = {
+      id: maxId + 1,
       name: shop.name,
       email: shop.email,
       phone: shop.phone,
       address: shop.address,
+      balance: shop.balance,
       contactPerson: shop.contactPerson || '',
       city: shop.city || '',
       state: shop.state || '',
       zipCode: shop.zipCode || '',
-      balance: shop.balance,
-      password: shop.password
+      role: 'Shop',
+      isActive: true,
+      createdDate: new Date(),
+      lastUpdated: new Date()
     };
 
-    return this.shopApiService.createShop(createDto).pipe(
-      tap(() => this.loadData()),
-      map(this.mapDtoToShop)
-    );
+    // Add to array and save to localStorage
+    this.shops.push(newShop);
+    this.saveShops();
+    this.shopsSubject.next([...this.shops]);
+
+    console.log('✅ ShopService: Created new shop:', newShop.name);
+    return of(newShop);
   }
 
   // Update shop
   updateShop(id: number, updates: Partial<Shop>): Observable<Shop> {
-    const updateDto = this.mapShopToUpdateDto(updates);
-    return this.shopApiService.updateShop(id, updateDto).pipe(
-      tap(() => this.loadData()),
-      map(this.mapDtoToShop)
-    );
+    const shopIndex = this.shops.findIndex(s => s.id === id);
+    if (shopIndex === -1) {
+      return of(null as any);
+    }
+
+    // Update the shop
+    const updatedShop = {
+      ...this.shops[shopIndex],
+      ...updates,
+      lastUpdated: new Date()
+    };
+
+    this.shops[shopIndex] = updatedShop;
+    this.saveShops();
+    this.shopsSubject.next([...this.shops]);
+
+    console.log('✅ ShopService: Updated shop:', updatedShop.name);
+    return of(updatedShop);
   }
 
   // Delete shop
   deleteShop(id: number): Observable<boolean> {
-    return this.shopApiService.deleteShop(id).pipe(
-      tap(() => this.loadData()),
-      map(() => true)
-    );
+    const shopIndex = this.shops.findIndex(s => s.id === id);
+    if (shopIndex === -1) {
+      return of(false);
+    }
+
+    this.shops.splice(shopIndex, 1);
+    this.saveShops();
+    this.shopsSubject.next([...this.shops]);
+
+    console.log('✅ ShopService: Deleted shop with ID:', id);
+    return of(true);
   }
 
   // Update shop balance
   updateBalance(id: number, amount: number): Observable<boolean> {
-    return this.shopApiService.updateBalance(id, amount).pipe(
-      tap(() => this.loadData()),
-      map(() => true)
-    );
+    const shop = this.shops.find(s => s.id === id);
+    if (!shop) {
+      return of(false);
+    }
+
+    shop.balance = amount;
+    shop.lastUpdated = new Date();
+    this.saveShops();
+    this.shopsSubject.next([...this.shops]);
+
+    console.log('✅ ShopService: Updated balance for shop:', shop.name, 'to', amount);
+    return of(true);
   }
 
   // Get total balance across all shops
@@ -171,5 +203,11 @@ export class ShopService {
   // Get cached shops
   getCachedShops(): Shop[] {
     return [...this.shops];
+  }
+
+  // Private method to save shops to localStorage
+  private saveShops(): void {
+    const shopsJson = this.shops.map(shop => this.mapShopToJson(shop));
+    this.dataService.saveShops(shopsJson);
   }
 }

@@ -209,6 +209,7 @@ export class ShopSettingsComponent implements OnInit {
       // Update existing shop
       this.shopService.updateShop(this.selectedShop.id, {
         name: this.shopForm.name,
+        email: this.shopForm.email,
         phone: this.shopForm.phone,
         address: this.shopForm.address,
         contactPerson: this.shopForm.contactPerson,
@@ -220,6 +221,7 @@ export class ShopSettingsComponent implements OnInit {
         next: () => {
           this.loaderService.hide();
           this.alertService.success('Shop Updated', `${this.shopForm.name} has been updated successfully.`);
+          this.loadShops(); // Refresh the shops list
           this.closeModal();
         },
         error: (error) => {
@@ -233,6 +235,7 @@ export class ShopSettingsComponent implements OnInit {
         next: () => {
           this.loaderService.hide();
           this.alertService.success('Shop Created', `${this.shopForm.name} has been created successfully.`);
+          this.loadShops(); // Refresh the shops list
           this.closeModal();
         },
         error: (error) => {
@@ -250,6 +253,7 @@ export class ShopSettingsComponent implements OnInit {
         next: () => {
           this.loaderService.hide();
           this.alertService.info('Shop Deleted', `${shop.name} has been deleted.`);
+          this.loadShops(); // Refresh the shops list
         },
         error: (error) => {
           this.loaderService.hide();
