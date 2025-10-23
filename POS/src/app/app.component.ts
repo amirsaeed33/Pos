@@ -1,14 +1,17 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { AlertComponent } from './components/alert/alert.component';
-import { LoaderComponent } from './components/loader/loader.component';
+import { Component, OnInit } from '@angular/core';
+import { PrimeNGConfig } from 'primeng/api';
 
 @Component({
-  selector: 'app-root',
-  imports: [RouterOutlet, AlertComponent, LoaderComponent],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
-  title = 'POS';
+export class AppComponent implements OnInit {
+
+    constructor(private primengConfig: PrimeNGConfig) { }
+
+    ngOnInit(): void {
+        this.primengConfig.ripple = true;
+    }
 }
+
