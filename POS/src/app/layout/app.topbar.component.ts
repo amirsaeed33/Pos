@@ -1,6 +1,8 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { MenuItem } from 'primeng/api';
+import { Router } from '@angular/router';
 import { LayoutService } from "./service/app.layout.service";
+import { AuthService } from 'src/app/demo/service/auth.service';
 
 @Component({
     selector: 'app-topbar',
@@ -16,7 +18,11 @@ export class AppTopBarComponent {
 
     searchActive: boolean = false;
 
-    constructor(public layoutService: LayoutService) {}
+    constructor(
+        public layoutService: LayoutService,
+        private authService: AuthService,
+        private router: Router
+    ) {}
 
     onMenuButtonClick() {
         this.layoutService.onMenuToggle();
@@ -54,5 +60,10 @@ export class AppTopBarComponent {
 
     get tabs(): MenuItem[] {
         return this.layoutService.tabs;
+    }
+
+    onSignOut(): void {
+        this.authService.logout();
+        this.router.navigate(['/auth/login']);
     }
 }

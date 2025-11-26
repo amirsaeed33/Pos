@@ -3,17 +3,54 @@
         <h1 class="font-bold text-2xl mt-0 mb-2">VERONA</h1>
         <p class="text-color-secondary mb-4">Welcome to the <strong>Verona Community</strong>, where the magic happens, sign in to continue.</p>
 
-        <span class="p-input-icon-left mb-4">
-            <i class="pi pi-user"></i>
-            <input type="text" pInputText placeholder="Email" class="w-full">         
-        </span>
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <span class="p-input-icon-left mb-4">
+                <i class="pi pi-user"></i>
+                <input 
+                    type="text" 
+                    pInputText 
+                    placeholder="Email or Username" 
+                    class="w-full"
+                    formControlName="userNameOrEmailAddress"
+                    [class.ng-invalid]="loginForm.get('userNameOrEmailAddress')?.invalid && loginForm.get('userNameOrEmailAddress')?.touched">         
+            </span>
+            <small class="p-error" *ngIf="loginForm.get('userNameOrEmailAddress')?.invalid && loginForm.get('userNameOrEmailAddress')?.touched">
+                Email or Username is required
+            </small>
 
-        <span class="p-input-icon-left mb-4">
-            <i class="pi pi-key"></i>
-            <input type="password" pInputText placeholder="Password" class="w-full">         
-        </span>
+            <span class="p-input-icon-left mb-4 mt-3">
+                <i class="pi pi-key"></i>
+                <input 
+                    type="password" 
+                    pInputText 
+                    placeholder="Password" 
+                    class="w-full"
+                    formControlName="password"
+                    [class.ng-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">         
+            </span>
+            <small class="p-error" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+                Password is required
+            </small>
 
-        <button [routerLink]="['/']" pButton pRipple label="Sign In" class="mb-4"></button>
+            <div class="flex align-items-center mb-4">
+                <p-checkbox formControlName="rememberClient" [binary]="true" inputId="remember"></p-checkbox>
+                <label for="remember" class="ml-2 text-sm">Remember me</label>
+            </div>
+
+            <button 
+                type="submit"
+                pButton 
+                pRipple 
+                label="Sign In" 
+                class="mb-4 w-full"
+                [disabled]="loading || loginForm.invalid">
+                <i *ngIf="loading" class="pi pi-spin pi-spinner mr-2"></i>
+                <span *ngIf="!loading">Sign In</span>
+                <span *ngIf="loading">Signing In...</span>
+            </button>
+        </form>
+
+        <p-toast></p-toast>
 
         <span class="text-color-secondary text-center mb-4">or sign in with below</span>
 
