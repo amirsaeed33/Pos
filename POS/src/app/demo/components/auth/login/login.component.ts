@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { AuthService } from 'src/app/demo/service/auth.service';
+import { SessionService } from 'src/app/demo/service/session.service';
 import { MessageService } from 'primeng/api';
 
 @Component({
@@ -18,6 +19,7 @@ export class LoginComponent implements OnInit {
 		private layoutService: LayoutService,
 		private fb: FormBuilder,
 		private authService: AuthService,
+		private sessionService: SessionService,
 		private router: Router,
 		private messageService: MessageService
 	) {
@@ -50,6 +52,13 @@ export class LoginComponent implements OnInit {
 
 		this.authService.authenticate(model)
 			.then(() => {
+				// Fetch user info after successful login
+				return this.sessionService.getCurrentLoginInformations();
+			})
+			.then((sessionInfo) => {
+				if (sessionInfo?.user) {
+					this.authService.setUserInfo(sessionInfo.user);
+				}
 				this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Login successful' });
 				this.router.navigate(['/']);
 			})

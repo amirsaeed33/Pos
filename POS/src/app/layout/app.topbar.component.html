@@ -37,10 +37,10 @@
     
     <div class="topbar-profile">
         <button class="topbar-profile-button p-link" type="button" pStyleClass="@next" enterClass="hidden" enterActiveClass="scalein" leaveToClass="hidden" leaveActiveClass="fadeout" [hideOnOutsideClick]="true">
-            <img alt="avatar" src="assets/layout/images/avatar.png">
+            <img alt="avatar" [src]="userImage">
             <span class="profile-details">
-                <span class="profile-name">Gene Russell</span>
-                <span class="profile-job">Developer</span>
+                <span class="profile-name">{{ userDisplayName }}</span>
+                <span class="profile-job">{{ userRole }}</span>
             </span>
             <i class="pi pi-angle-down"></i>
         </button>

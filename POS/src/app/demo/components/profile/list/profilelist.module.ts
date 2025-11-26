@@ -5,6 +5,9 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { ProfileListComponent } from './profilelist.component';
 import { ProfileListRoutingModule } from './profilelist-routing.module';
 
@@ -16,7 +19,10 @@ import { ProfileListRoutingModule } from './profilelist-routing.module';
 		ButtonModule,
 		InputTextModule,
 		TableModule,
-		ProgressBarModule
+		ProgressBarModule,
+		TagModule,
+		ToastModule,
+		TooltipModule
 	],
 	declarations: [ProfileListComponent]
 })

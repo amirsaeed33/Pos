@@ -16,54 +16,29 @@ export class AuthService {
             .toPromise()
             .then((res: any) => {
                 if (!res) {
-                    console.error('No response from server');
                     throw new Error('No response from server');
                 }
                 
-                // Log the full response for debugging
-                console.log('Full auth response:', JSON.stringify(res, null, 2));
-                console.log('Response keys:', Object.keys(res));
-                
+                // ABP Framework wraps responses in a result property
                 // Check if this is an error response from ABP Framework
-                if (res.error) {
-                    const errorMessage = res.error.message || res.error.details || 'Authentication failed';
-                    console.error('ABP Error response:', res.error);
+                if (res.error || !res.success) {
+                    const errorMessage = res.error?.message || 
+                                       res.error?.details || 
+                                       'Authentication failed';
                     throw new Error(errorMessage);
                 }
                 
-                // Handle both camelCase and PascalCase property names from backend
-                // ABP Framework typically uses PascalCase in JSON responses
-                // Try all possible property name variations
-                const accessToken = res.accessToken || 
-                                  res.AccessToken || 
-                                  res.access_token || 
-                                  res.access_token;
+                // Extract the actual data from the result property (ABP Framework wrapper)
+                const result = res.result || res;
                 
-                const encryptedAccessToken = res.encryptedAccessToken || 
-                                           res.EncryptedAccessToken || 
-                                           res.encrypted_access_token;
-                
-                const userId = res.userId !== undefined ? res.userId : 
-                              res.UserId !== undefined ? res.UserId : 
-                              res.user_id;
-                
-                const expireInSeconds = res.expireInSeconds !== undefined ? res.expireInSeconds : 
-                                      res.ExpireInSeconds !== undefined ? res.ExpireInSeconds : 
-                                      res.expire_in_seconds;
+                // Handle both camelCase and PascalCase property names
+                const accessToken = result.accessToken || result.AccessToken;
+                const encryptedAccessToken = result.encryptedAccessToken || result.EncryptedAccessToken;
+                const userId = result.userId !== undefined ? result.userId : result.UserId;
+                const expireInSeconds = result.expireInSeconds !== undefined ? result.expireInSeconds : result.ExpireInSeconds;
                 
                 if (!accessToken) {
-                    console.error('Response structure:', JSON.stringify(res, null, 2));
-                    console.error('Available properties:', Object.keys(res));
-                    
-                    // Check for common error patterns
-                    if (res.message) {
-                        throw new Error(res.message);
-                    }
-                    if (res.error?.message) {
-                        throw new Error(res.error.message);
-                    }
-                    
-                    throw new Error('Invalid response: access token not found. Please check your credentials and ensure the backend is running.');
+                    throw new Error('Invalid response: access token not found. Please check your credentials.');
                 }
                 
                 // Store token in localStorage
@@ -86,9 +61,6 @@ export class AuthService {
                 } as AuthenticateResultModel;
             })
             .catch((error: any) => {
-                console.error('Authentication error:', error);
-                console.error('Error details:', JSON.stringify(error, null, 2));
-                
                 // Handle HTTP errors - ABP Framework error structure
                 if (error?.error) {
                     const abpError = error.error;
@@ -123,6 +95,16 @@ export class AuthService {
         localStorage.removeItem('encryptedAccessToken');
         localStorage.removeItem('userId');
         localStorage.removeItem('expireInSeconds');
+        localStorage.removeItem('userInfo');
+    }
+
+    setUserInfo(userInfo: any): void {
+        localStorage.setItem('userInfo', JSON.stringify(userInfo));
+    }
+
+    getUserInfo(): any {
+        const userInfo = localStorage.getItem('userInfo');
+        return userInfo ? JSON.parse(userInfo) : null;
     }
 }
 
