@@ -8,6 +8,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ProfileListComponent } from './profilelist.component';
 import { ProfileListRoutingModule } from './profilelist-routing.module';
 
@@ -22,7 +23,8 @@ import { ProfileListRoutingModule } from './profilelist-routing.module';
 		ProgressBarModule,
 		TagModule,
 		ToastModule,
-		TooltipModule
+		TooltipModule,
+		ConfirmDialogModule
 	],
 	declarations: [ProfileListComponent]
 })

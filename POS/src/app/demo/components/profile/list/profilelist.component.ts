@@ -3,12 +3,12 @@ import { Router } from '@angular/router';
 import { Table } from 'primeng/table';
 import { UserDto } from 'src/app/demo/api/user-management';
 import { UserService } from 'src/app/demo/service/user.service';
-import { MessageService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { environment } from 'src/environments/environment';
 
 @Component({
     templateUrl: './profilelist.component.html',
-    providers: [MessageService]
+    providers: [MessageService, ConfirmationService]
 })
 export class ProfileListComponent implements OnInit {
 
@@ -19,7 +19,8 @@ export class ProfileListComponent implements OnInit {
     constructor(
         private userService: UserService,
         private router: Router,
-        private messageService: MessageService
+        private messageService: MessageService,
+        private confirmationService: ConfirmationService
     ) { }
 
     ngOnInit() {
@@ -62,24 +63,30 @@ export class ProfileListComponent implements OnInit {
     }
 
     onDeleteUser(user: UserDto) {
-        if (confirm(`Are you sure you want to delete user ${user.userName}?`)) {
-            this.userService.delete(user.id)
-                .then(() => {
-                    this.messageService.add({ 
-                        severity: 'success', 
-                        summary: 'Success', 
-                        detail: 'User deleted successfully' 
+        this.confirmationService.confirm({
+            message: `Are you sure you want to delete user "${user.userName}"? This action cannot be undone.`,
+            header: 'Delete Confirmation',
+            icon: 'pi pi-exclamation-triangle',
+            acceptButtonStyleClass: 'p-button-danger',
+            accept: () => {
+                this.userService.delete(user.id)
+                    .then(() => {
+                        this.messageService.add({ 
+                            severity: 'success', 
+                            summary: 'Success', 
+                            detail: 'User deleted successfully' 
+                        });
+                        this.loadUsers();
+                    })
+                    .catch((error) => {
+                        this.messageService.add({ 
+                            severity: 'error', 
+                            summary: 'Error', 
+                            detail: 'Failed to delete user' 
+                        });
                     });
-                    this.loadUsers();
-                })
-                .catch((error) => {
-                    this.messageService.add({ 
-                        severity: 'error', 
-                        summary: 'Error', 
-                        detail: 'Failed to delete user' 
-                    });
-                });
-        }
+            }
+        });
     }
 
     onToggleActive(user: UserDto) {
