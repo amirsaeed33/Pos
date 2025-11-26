@@ -35,12 +35,17 @@ export class SessionService {
                     tenant: result.tenant || result.Tenant
                 };
 
-                // If we have a user, also fetch their roles
+                // If we have a user, also fetch their roles and profile picture
                 if (sessionInfo.user?.id) {
                     return this.getCurrentUserWithRoles(sessionInfo.user.id)
                         .then((userWithRoles) => {
-                            if (userWithRoles && userWithRoles.roleNames && userWithRoles.roleNames.length > 0) {
-                                sessionInfo.user.roleNames = userWithRoles.roleNames;
+                            if (userWithRoles) {
+                                if (userWithRoles.roleNames && userWithRoles.roleNames.length > 0) {
+                                    sessionInfo.user.roleNames = userWithRoles.roleNames;
+                                }
+                                if (userWithRoles.profilePictureUrl) {
+                                    sessionInfo.user.profilePictureUrl = userWithRoles.profilePictureUrl;
+                                }
                             }
                             return sessionInfo;
                         })
@@ -66,14 +71,16 @@ export class SessionService {
 
                 const result = res.result || res;
                 const roleNames = result.roleNames || result.RoleNames || [];
+                const profilePictureUrl = result.profilePictureUrl || result.ProfilePictureUrl || null;
                 
                 return {
-                    roleNames: Array.isArray(roleNames) ? roleNames : []
+                    roleNames: Array.isArray(roleNames) ? roleNames : [],
+                    profilePictureUrl: profilePictureUrl
                 };
             })
             .catch((error) => {
                 // If getting user fails, try to get roles from session or return empty
-                return { roleNames: [] };
+                return { roleNames: [], profilePictureUrl: null };
             });
     }
 

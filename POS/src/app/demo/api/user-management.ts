@@ -9,6 +9,7 @@ export interface UserDto {
     lastLoginTime?: string;
     creationTime: string;
     roleNames?: string[];
+    profilePictureUrl?: string;
 }
 
 export interface CreateUserDto {
@@ -19,6 +20,7 @@ export interface CreateUserDto {
     isActive: boolean;
     roleNames?: string[];
     password: string;
+    profilePictureUrl?: string;
 }
 
 export interface PagedUserResultRequestDto {

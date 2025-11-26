@@ -76,8 +76,26 @@ export class UserService {
                     throw new Error('No response from server');
                 }
 
+                // Check for ABP error response
+                if (res.error || (res.success === false)) {
+                    const errorMessage = res.error?.message || res.error?.details || 'Failed to get user';
+                    throw new Error(errorMessage);
+                }
+
                 const result = res.result || res;
                 return this.mapUserDto(result);
+            })
+            .catch((error: any) => {
+                if (error?.error) {
+                    const abpError = error.error;
+                    const errorMessage = abpError.error?.message || 
+                                       abpError.message || 
+                                       abpError.details ||
+                                       error.message || 
+                                       'Failed to get user';
+                    throw new Error(errorMessage);
+                }
+                throw error;
             }) as Promise<UserDto>;
     }
 
@@ -201,7 +219,8 @@ export class UserService {
             fullName: item.fullName || item.FullName || '',
             lastLoginTime: item.lastLoginTime || item.LastLoginTime,
             creationTime: item.creationTime || item.CreationTime,
-            roleNames: item.roleNames || item.RoleNames || []
+            roleNames: item.roleNames || item.RoleNames || [],
+            profilePictureUrl: item.profilePictureUrl || item.ProfilePictureUrl || null
         };
     }
 

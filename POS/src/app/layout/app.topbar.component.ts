@@ -5,6 +5,7 @@ import { LayoutService } from "./service/app.layout.service";
 import { AuthService } from 'src/app/demo/service/auth.service';
 import { SessionService } from 'src/app/demo/service/session.service';
 import { UserLoginInfoDto } from 'src/app/demo/api/session';
+import { environment } from 'src/environments/environment';
 
 @Component({
     selector: 'app-topbar',
@@ -67,7 +68,13 @@ export class AppTopBarComponent implements OnInit {
         
         // Set user image if available, otherwise use default
         if (user.profilePictureUrl) {
-            this.userImage = user.profilePictureUrl;
+            // Construct full URL from relative path
+            if (user.profilePictureUrl.startsWith('http://') || user.profilePictureUrl.startsWith('https://')) {
+                this.userImage = user.profilePictureUrl;
+            } else {
+                // It's a relative path, construct full URL
+                this.userImage = `${environment.apiUrl}${user.profilePictureUrl.startsWith('/') ? '' : '/'}${user.profilePictureUrl}`;
+            }
         } else {
             // You can add logic here to generate avatar from initials or use a default
             this.userImage = 'assets/layout/images/avatar.png';
@@ -92,6 +99,13 @@ export class AppTopBarComponent implements OnInit {
         } else {
             // Default role if no roles found
             this.userRole = 'User';
+        }
+    }
+
+    onImageError(event: Event): void {
+        const img = event.target as HTMLImageElement;
+        if (img) {
+            img.src = 'assets/layout/images/avatar.png';
         }
     }
 

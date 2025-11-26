@@ -4,6 +4,7 @@ import { Table } from 'primeng/table';
 import { UserDto } from 'src/app/demo/api/user-management';
 import { UserService } from 'src/app/demo/service/user.service';
 import { MessageService } from 'primeng/api';
+import { environment } from 'src/environments/environment';
 
 @Component({
     templateUrl: './profilelist.component.html',
@@ -106,5 +107,26 @@ export class ProfileListComponent implements OnInit {
             return user.roleNames.join(', ');
         }
         return 'No roles';
+    }
+
+    getProfilePictureUrl(profilePictureUrl: string | undefined): string {
+        if (!profilePictureUrl) {
+            return 'assets/layout/images/avatar.png';
+        }
+        
+        // If it's already a full URL, use it; otherwise construct from base URL
+        if (profilePictureUrl.startsWith('http://') || profilePictureUrl.startsWith('https://')) {
+            return profilePictureUrl;
+        }
+        
+        // It's a relative path, construct full URL
+        return `${environment.apiUrl}${profilePictureUrl.startsWith('/') ? '' : '/'}${profilePictureUrl}`;
+    }
+
+    onImageError(event: Event): void {
+        const img = event.target as HTMLImageElement;
+        if (img) {
+            img.src = 'assets/layout/images/avatar.png';
+        }
     }
 }

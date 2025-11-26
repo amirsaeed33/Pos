@@ -37,7 +37,7 @@
     
     <div class="topbar-profile">
         <button class="topbar-profile-button p-link" type="button" pStyleClass="@next" enterClass="hidden" enterActiveClass="scalein" leaveToClass="hidden" leaveActiveClass="fadeout" [hideOnOutsideClick]="true">
-            <img alt="avatar" [src]="userImage">
+            <img alt="avatar" [src]="userImage" (error)="onImageError($event)" class="border-circle" style="width: 40px; height: 40px; object-fit: cover;">
             <span class="profile-details">
                 <span class="profile-name">{{ userDisplayName }}</span>
                 <span class="profile-job">{{ userRole }}</span>

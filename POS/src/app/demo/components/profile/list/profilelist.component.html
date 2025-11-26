@@ -15,6 +15,7 @@
         </ng-template>
         <ng-template pTemplate="header">
             <tr>
+                <th class="white-space-nowrap">Picture</th>
                 <th pSortableColumn="userName" class="white-space-nowrap">Username <p-sortIcon field="userName"></p-sortIcon></th>
                 <th pSortableColumn="name" class="white-space-nowrap">Name <p-sortIcon field="name"></p-sortIcon></th>
                 <th pSortableColumn="emailAddress" class="white-space-nowrap">Email <p-sortIcon field="emailAddress"></p-sortIcon></th>
@@ -26,6 +27,13 @@
         </ng-template>
         <ng-template pTemplate="body" let-user>
             <tr>
+                <td>
+                    <img [src]="getProfilePictureUrl(user.profilePictureUrl)" 
+                        [alt]="user.userName" 
+                        class="border-circle" 
+                        style="width: 40px; height: 40px; object-fit: cover; border: 1px solid var(--surface-border);"
+                        (error)="onImageError($event)">
+                </td>
                 <td>{{user.userName}}</td>
                 <td>{{user.name}} {{user.surname}}</td>
                 <td>{{user.emailAddress}}</td>
@@ -57,7 +65,7 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="7" class="text-center p-4">
+                <td colspan="8" class="text-center p-4">
                     <div class="text-500">No users found</div>
                 </td>
             </tr>
