@@ -83,29 +83,68 @@ export class UserService {
 
     create(input: CreateUserDto): Promise<UserDto> {
         const headers = this.getAuthHeaders();
-        return this.http.post<any>(this.apiUrl, input, { headers })
+        // ABP Framework exposes Create method explicitly
+        return this.http.post<any>(`${this.apiUrl}/Create`, input, { headers })
             .toPromise()
             .then((res: any) => {
                 if (!res) {
                     throw new Error('No response from server');
                 }
 
+                // Check for ABP error response
+                if (res.error || (res.success === false)) {
+                    const errorMessage = res.error?.message || res.error?.details || 'Failed to create user';
+                    throw new Error(errorMessage);
+                }
+
                 const result = res.result || res;
                 return this.mapUserDto(result);
+            })
+            .catch((error: any) => {
+                // Handle HTTP errors
+                if (error?.error) {
+                    const abpError = error.error;
+                    const errorMessage = abpError.error?.message || 
+                                       abpError.message || 
+                                       abpError.details ||
+                                       error.message || 
+                                       'Failed to create user';
+                    throw new Error(errorMessage);
+                }
+                throw error;
             }) as Promise<UserDto>;
     }
 
     update(input: UserDto): Promise<UserDto> {
         const headers = this.getAuthHeaders();
-        return this.http.put<any>(this.apiUrl, input, { headers })
+        // ABP Framework exposes Update method explicitly
+        return this.http.put<any>(`${this.apiUrl}/Update`, input, { headers })
             .toPromise()
             .then((res: any) => {
                 if (!res) {
                     throw new Error('No response from server');
                 }
 
+                // Check for ABP error response
+                if (res.error || (res.success === false)) {
+                    const errorMessage = res.error?.message || res.error?.details || 'Failed to update user';
+                    throw new Error(errorMessage);
+                }
+
                 const result = res.result || res;
                 return this.mapUserDto(result);
+            })
+            .catch((error: any) => {
+                if (error?.error) {
+                    const abpError = error.error;
+                    const errorMessage = abpError.error?.message || 
+                                       abpError.message || 
+                                       abpError.details ||
+                                       error.message || 
+                                       'Failed to update user';
+                    throw new Error(errorMessage);
+                }
+                throw error;
             }) as Promise<UserDto>;
     }
 

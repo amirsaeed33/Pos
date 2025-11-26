@@ -57,9 +57,7 @@ export class ProfileListComponent implements OnInit {
     }
 
     onEditUser(user: UserDto) {
-        // Navigate to edit page or open edit dialog
-        // For now, just log
-        console.log('Edit user:', user);
+        this.router.navigate(['profile/edit', user.id]);
     }
 
     onDeleteUser(user: UserDto) {
